@@ -129,14 +129,6 @@ export function useSearch(collection: Ref<CollectionMeta | null>) {
     debouncedSearch()
   })
 
-  watch(
-    collection,
-    () => {
-      category.value = ''
-      variant.value = ''
-    },
-  )
-
   return {
     collection,
     search,
@@ -146,7 +138,13 @@ export function useSearch(collection: Ref<CollectionMeta | null>) {
   }
 }
 
-export function getSearchHighlightHTML(text: string, search: string, baseClass = 'text-gray-500', activeClass = 'text-primary') {
+// @unocss-include
+export function getSearchHighlightHTML(
+  text: string,
+  search: string,
+  baseClass = 'color-fade',
+  activeClass = 'text-primary',
+) {
   const start = text.indexOf(search || '')
 
   if (!search || start < 0)
