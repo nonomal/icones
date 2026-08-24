@@ -6,13 +6,20 @@ body {
 
 html.dark {
   background: #181818;
+  color-scheme: dark;
+}
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark);
+}
+html:not(.dark) .shiki,
+html:not(.dark) .shiki span {
+  color: var(--shiki-light);
 }
 
 .btn {
-  --uno: border border-base rounded shadow-sm outline-none px-4 py-1
-    text-gray-600 text-sm transition-all bg-base hover-(bg-gray-50 shadow)
-    dark-(border-dark-200 text-gray-300)
-    dark-hover-(border-primary bg-dark-100 text-primary)
+  --uno: border border-base rounded shadow-sm outline-none px-4 py-1 text-gray-600 text-sm transition-all bg-base
+    hover-(bg-gray-50 shadow) dark-(border-dark-200 text-gray-300) dark-hover-(border-primary bg-dark-100 text-primary)
     focus-(shadow outline-none);
 }
 
@@ -71,31 +78,27 @@ html.dark {
 }
 
 /* Tootip */
-.tooltip {
-  position: relative;
+.v-popper--theme-tooltip .v-popper__inner,
+.v-popper--theme-menu .v-popper__inner {
+  --uno: important-bg-base;
 }
 
-.tooltip .tooltip-text {
+.v-popper--theme-tooltip .v-popper__arrow-outer,
+.v-popper--theme-menu .v-popper__arrow-outer {
+  --uno: important-border-none;
+}
+
+.v-popper--theme-tooltip .v-popper__inner,
+.v-popper--theme-menu .v-popper__inner {
+  --uno: border border-base shadow-lg;
+}
+
+.v-popper--theme-menu .v-popper__arrow-outer {
   visibility: hidden;
-  font-size: 14px;
-  text-align: center;
-  border-radius: 4px;
-  position: absolute;
-  z-index: 1;
-  padding: 5px 8px;
-  top: 135%;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  @apply whitespace-nowrap;
 }
 
-@media (hover: hover) {
-  .tooltip:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
-  }
+.v-popper--theme-menu .v-popper__arrow-inner {
+  visibility: hidden;
 }
 
 /* fallback black svg in dark mode */

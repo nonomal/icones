@@ -35,9 +35,9 @@ function onKeydown(event: any) {
   emit('onKeydown', event)
 }
 
-function update(event: any) {
+const update = useDebounceFn((event: any) => {
   emit('update:search', event.target.value)
-}
+}, 250)
 
 function clear() {
   emit('update:search', '')
@@ -45,7 +45,7 @@ function clear() {
 </script>
 
 <template>
-  <div :class="style ? ['md:flex md:shadow md:rounded outline-none md:py-1 py-3 px-4', { 'border-b border-x border-b md:border-t border-base': border }] : ''">
+  <div :class="style ? ['md:flex md:rounded outline-none md:py-1 py-3 px-4', { 'border-b border-x border-b md:border-t border-base': border }] : ''">
     <Icon v-if="icon" :icon="icon" class="m-auto flex-none opacity-60" />
     <form action="/collection/all" class="flex-auto" role="search" method="get" @submit.prevent>
       <input

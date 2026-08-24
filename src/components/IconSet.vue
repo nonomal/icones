@@ -1,8 +1,8 @@
 <!-- eslint-disable no-console -->
 <script setup lang='ts'>
-import { activeMode, bags, drawerCollapsed, getSearchResults, iconSize, isCurrentCollectionLoading, listType, showHelp, toggleBag } from '../store'
-import { isLocalMode } from '../env'
 import { cacheCollection, specialTabs } from '../data'
+import { isLocalMode } from '../env'
+import { activeMode, bags, drawerCollapsed, getSearchResults, iconSize, isCurrentCollectionLoading, listType, showHelp, toggleBag } from '../store'
 import { getIconSnippet } from '../utils/icons'
 import { cleanupQuery } from '../utils/query'
 
@@ -28,7 +28,7 @@ const loading = isCurrentCollectionLoading()
 const maxMap = new Map<string, number>()
 const id = computed(() => collection.value?.id)
 const url = computed(() => collection.value?.url || collection.value?.author?.url)
-const npm = computed(() => (id.value != null && !specialTabs.includes(id.value)) ? `https://www.npmjs.com/package/@iconify-json/${id.value}` : '')
+const npm = computed(() => (id.value != null && !specialTabs.includes(id.value)) ? `https://npmx.dev/package/@iconify-json/${id.value}` : '')
 const namespace = computed(() => (id.value != null && !specialTabs.includes(id.value)) ? `${id.value}:` : '')
 
 function onCopy(status: boolean) {
@@ -58,7 +58,7 @@ async function copyText(text?: string) {
       await navigator.clipboard.writeText(text)
       return true
     }
-    catch (err) {
+    catch {
     }
   }
   return false
@@ -70,7 +70,12 @@ async function onSelect(icon: string) {
       toggleBag(icon)
       break
     case 'copy':
-      onCopy(await copyText(await getIconSnippet(icon, 'id', true) || icon))
+      onCopy(await copyText(await getIconSnippet(
+        [collection.value!],
+        icon,
+        'id',
+        true,
+      ) || icon))
       break
     default:
       current.value = icon
@@ -116,9 +121,7 @@ function focusSearch() {
 onMounted(focusSearch)
 watch(router.currentRoute, focusSearch, { immediate: true })
 
-router.afterEach((to) => {
-  if (to.path === '/')
-    search.value = ''
+router.afterEach(() => {
   focusSearch()
 })
 
@@ -159,7 +162,7 @@ useEventListener(categoriesContainer, 'wheel', (e: WheelEvent) => {
       <button
         fixed top="50%" flex="~ items-end justify-center" w-5 h-8
         icon-button transition-all duration-300
-        border="t r b base rounded-r-full" z-100
+        border="t r b base rounded-r-full" z-10 max-md:hidden
         title="Toggle Sidebar"
         :style="{ left: drawerCollapsed ? '0px' : '250px' }"
         @click="drawerCollapsed = !drawerCollapsed"
@@ -190,26 +193,30 @@ useEventListener(categoriesContainer, 'wheel', (e: WheelEvent) => {
             <div class="flex-auto px-2">
               <NavPlaceholder class="md:hidden" />
 
-              <div class="text-gray-900 text-xl flex select-none dark:text-gray-200">
-                <div class="whitespace-no-wrap overflow-hidden">
+              <div class="text-gray-900 text-xl flex items-center select-none dark:text-gray-200">
+                <div class="whitespace-no-wrap of-hidden">
                   {{ collection.name }}
                 </div>
-                <a
-                  v-if="url"
-                  class="ml-1 mt-1 text-base opacity-25 hover:opacity-100"
-                  :href="url"
-                  target="_blank"
-                >
-                  <Icon icon="la:external-link-square-alt-solid" />
-                </a>
-                <a
-                  v-if="npm"
-                  class="ml-1 mt-1 text-base opacity-25 hover:opacity-100"
-                  :href="npm"
-                  target="_blank"
-                >
-                  <Icon icon="la:npm" />
-                </a>
+                <!-- Information icons -->
+                <div ml-1 flex="~ items-center gap-1">
+                  <div v-if="collection.hidden" i-carbon:information-disabled text="orange sm" title="The icon set was deprecated and is no longer available" />
+                  <a
+                    v-if="url"
+                    class="flex items-center text-base opacity-25 hover:opacity-100"
+                    :href="url"
+                    target="_blank"
+                  >
+                    <Icon icon="la:external-link-square-alt-solid" />
+                  </a>
+                  <a
+                    v-if="npm"
+                    class="flex items-center text-base opacity-25 hover:opacity-100"
+                    :href="npm"
+                    target="_blank"
+                  >
+                    <Icon icon="la:npm" />
+                  </a>
+                </div>
                 <div class="flex-auto" />
               </div>
               <div class="text-xs block opacity-50">
@@ -277,6 +284,7 @@ useEventListener(categoriesContainer, 'wheel', (e: WheelEvent) => {
           <!-- Icons -->
           <div class="px-5 pt-2 pb-4 text-center">
             <Icons
+              :key="namespace"
               :icons="icons.slice(0, max)"
               :selected="bags"
               :class="iconSize"
@@ -342,8 +350,6 @@ useEventListener(categoriesContainer, 'wheel', (e: WheelEvent) => {
           {{ activeMode === 'select' ? 'Multiple select' : 'Name copying mode' }}
           <Icon icon="carbon:close" class="inline-block text-xl align-text-bottom" />
         </div>
-
-        <SearchElectron />
 
         <Notification :value="copied">
           <Icon icon="mdi:check" class="inline-block mr-2 font-xl align-middle" />

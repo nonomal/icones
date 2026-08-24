@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { CollectionMeta } from '../data'
+import type { CollectionInfo } from '../data'
 import { isInstalled } from '../data'
-import { isElectron } from '../env'
 import { isExcludedCategory, isExcludedCollection, isFavoritedCollection, toggleExcludedCollection, toggleFavoriteCollection } from '../store'
 
 defineProps<{
-  collections: CollectionMeta[]
+  collections: readonly CollectionInfo[]
 }>()
 </script>
 
@@ -25,7 +24,7 @@ defineProps<{
       </RouterLink>
       <div />
       <div
-        v-if="isInstalled(c.id) && !isElectron"
+        v-if="isInstalled(c.id)"
         icon-button class="!op50"
         i-carbon-cloud-auditing
         title="Cached in browser"

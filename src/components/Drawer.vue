@@ -1,30 +1,35 @@
 <script setup lang='ts'>
 import { categorySearch, filteredCollections, sortedCollectionsInfo, specialTabs } from '../data'
 import { isFavoritedCollection, recentIconIds, toggleFavoriteCollection } from '../store'
-import { isElectron } from '../env'
 
 const route = useRoute()
 const current = computed(() => route.path.split('/').slice(-1)[0])
 
 const collections = computed(() => {
-  if (categorySearch.value) {
-    return filteredCollections.value
-  }
-  else {
-    return [
-      { id: 'all', name: 'All' },
-      { id: 'recent', name: 'Recent' },
-      ...sortedCollectionsInfo.value,
-    ]
-  }
+  const _collections = categorySearch.value
+    ? filteredCollections.value
+    : [
+        { id: 'all', name: 'All' },
+        { id: 'recent', name: 'Recent' },
+        ...sortedCollectionsInfo.value,
+      ]
+
+  return _collections.map(collection => ({
+    ...collection,
+    to: {
+      name: 'collection-id',
+      params: { id: collection.id },
+      query: {
+        s: route.query.s,
+      },
+    },
+  }))
 })
 </script>
 
 <template>
   <div border="r base" relative>
-    <NavPlaceholder class="mb-4" />
     <div
-      v-if="!isElectron"
       sticky top-0 bg-base z-1
     >
       <div flex="~ justify-between" border="b base">
@@ -51,7 +56,7 @@ const collections = computed(() => {
       v-for="collection in collections"
       :key="collection.id"
       class="px-3 py-1 flex border-b border-base"
-      :to="`/collection/${collection.id}`"
+      :to="collection.to"
     >
       <div
         class="flex-auto py-1"
@@ -59,6 +64,7 @@ const collections = computed(() => {
       >
         <div class="text-base leading-tight">
           {{ collection.name }}
+          <span v-if="collection.hidden" m="l--0.5" op80 text-xs text-orange inline-block align-top i-carbon:information-disabled />
         </div>
         <div class="text-xs block opacity-50 mt-1">
           {{

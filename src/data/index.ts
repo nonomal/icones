@@ -1,10 +1,17 @@
 import type { IconifyJSON } from 'iconify-icon'
 import { notNullish } from '@antfu/utils'
-import { addCollection } from 'iconify-icon'
 import { AsyncFzf } from 'fzf'
-import { favoritedCollectionIds, inProgress, isExcludedCollection, isFavoritedCollection, isRecentCollection, progressMessage, recentCollectionIds } from '../store'
+import { addCollection } from 'iconify-icon'
 import { isLocalMode, staticPath } from '../env'
 import { loadCollection, saveCollection } from '../store/indexedDB'
+import {
+  favoritedCollectionIds,
+  isExcludedCollection,
+  isFavoritedCollection,
+  isRecentCollection,
+  recentCollectionIds,
+} from '../store/localstorage'
+import { inProgress, progressMessage } from '../store/progress'
 import infoJSON from './collections-info.json'
 import { variantCategories } from './variant-category'
 
@@ -23,6 +30,10 @@ export interface CollectionInfo {
   palette?: string
   total?: number
   prepacked?: IconifyJSON
+  /**
+   * The icon set was deprecated and is no longer available
+   */
+  hidden?: boolean
 }
 
 export interface CollectionMeta extends CollectionInfo {
@@ -36,9 +47,9 @@ const installed = ref<string[]>([])
 
 export const collections = infoJSON.map(c => Object.freeze(c as any as CollectionInfo))
 export const enabledCollections = computed(() => collections.filter(c => !isExcludedCollection(c)))
+
 export const categories = Array.from(new Set(collections.map(i => i.category).filter(notNullish)))
 
-export const isSearchOpen = ref(false)
 export const categorySearch = ref('')
 
 const fzf = new AsyncFzf(collections, {
@@ -81,7 +92,7 @@ export function isInstalled(id: string) {
   return installed.value.includes(id)
 }
 export function isMetaLoaded(id: string) {
-  return !!loadedMeta.value.find(i => i.id === id)
+  return loadedMeta.value.some(i => i.id === id)
 }
 
 // install the preview icons on the homepage

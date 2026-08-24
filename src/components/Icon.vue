@@ -1,4 +1,5 @@
 <script lang="ts">
+import { loadIcon } from 'iconify-icon'
 import { LRUCache } from 'lru-cache'
 
 const cache = new LRUCache<string, HTMLElement>({
@@ -12,6 +13,13 @@ function getIcon(name: string) {
   if (el) {
     if (!mounted.has(el)) {
       mounted.add(el)
+      // If the element was unmounted while out of the viewport, its internal
+      // IntersectionObserver had removed the SVG from the shadow root, and
+      // `disconnectedCallback` reset the visibility flag without re-rendering,
+      // so on reuse it would stay empty forever. Re-setting the attribute
+      // triggers `attributeChangedCallback`, which re-checks the shadow root
+      // and re-renders the icon if it is missing.
+      el.setAttribute('icon', name)
       return el
     }
   }
@@ -46,6 +54,7 @@ const props = defineProps({
 
 const el = ref<HTMLDivElement>()
 let node: HTMLElement | undefined
+const widthStyle = ref<string | undefined>()
 
 watchEffect(() => {
   if (node)
@@ -53,8 +62,12 @@ watchEffect(() => {
 })
 
 onMounted(() => {
+  const icon = props.icon
   node = getIcon(props.icon)
   el.value?.appendChild(node)
+  loadIcon(icon).then((data) => {
+    widthStyle.value = `width: ${(data.width ?? 16) / (data.height ?? 16)}em;`
+  }).catch(console.error)
 })
 
 onBeforeUnmount(() => {
@@ -64,7 +77,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="el" class="icon-container" :class="[props.class, props.outerClass]" />
+  <div ref="el" class="icon-container" :class="[props.class, props.outerClass]" :style="widthStyle" />
 </template>
 
 <style>
@@ -78,5 +91,6 @@ iconify-icon {
   display: inline-block;
   vertical-align: middle;
   line-height: 1em !important;
+  box-sizing: content-box;
 }
 </style>

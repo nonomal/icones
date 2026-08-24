@@ -1,7 +1,7 @@
-import { AsyncFzf, asyncExtendedMatch } from 'fzf'
 import type { Ref } from 'vue'
-import { computed, markRaw, ref, watch } from 'vue'
 import type { CollectionMeta } from '../data'
+import { asyncExtendedMatch, AsyncFzf } from 'fzf'
+import { computed, markRaw, ref, watch } from 'vue'
 import { specialTabs } from '../data'
 import { searchAlias } from '../data/search-alias'
 import { cleanupQuery } from '../utils/query'
@@ -65,9 +65,9 @@ export function useSearch(collection: Ref<CollectionMeta | null>) {
 
     return (category.value && variant.value)
       ? arrayIntersection(
-        collection.value.categories?.[category.value] || [],
-        collection.value.variants?.[variant.value] || [],
-      )
+          collection.value.categories?.[category.value] || [],
+          collection.value.variants?.[variant.value] || [],
+        )
       : category.value
         ? (collection.value.categories?.[category.value] || [])
         : variant.value
@@ -103,14 +103,15 @@ export function useSearch(collection: Ref<CollectionMeta | null>) {
     finder.value.find(searchString)
       .then((result) => {
         icons.value = result.map(i => i.item)
-      }).catch(() => {
+      })
+      .catch(() => {
         // The search is canceled
       })
   }
 
   const debouncedSearch = useDebounceFn(runSearch, 200)
 
-  watch([category, variant], () => {
+  watch([category, variant, () => collection.value?.id], () => {
     runSearch()
   })
 
@@ -129,14 +130,6 @@ export function useSearch(collection: Ref<CollectionMeta | null>) {
     debouncedSearch()
   })
 
-  watch(
-    collection,
-    () => {
-      category.value = ''
-      variant.value = ''
-    },
-  )
-
   return {
     collection,
     search,
@@ -146,7 +139,13 @@ export function useSearch(collection: Ref<CollectionMeta | null>) {
   }
 }
 
-export function getSearchHighlightHTML(text: string, search: string, baseClass = 'text-gray-500', activeClass = 'text-primary') {
+// @unocss-include
+export function getSearchHighlightHTML(
+  text: string,
+  search: string,
+  baseClass = 'color-fade',
+  activeClass = 'text-primary',
+) {
   const start = text.indexOf(search || '')
 
   if (!search || start < 0)
